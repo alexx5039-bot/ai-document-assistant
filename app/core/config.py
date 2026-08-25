@@ -33,6 +33,13 @@ class Settings(BaseSettings):
             f"/{self.postgres_db}"
         )
 
+    @property
+    def alembic_database_url(self) -> str:
+        return self.database_url.replace(
+            "postgresql+asyncpg",
+            "postgresql+psycopg",
+        )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",
