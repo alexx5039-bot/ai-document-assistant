@@ -8,9 +8,12 @@ from starlette import status
 from app.core.security import decode_access_token
 from app.db.database import AsyncSessionLocal
 from app.models import User
+from app.repositories.document_repository import DocumentRepository
 from app.repositories.user_repository import UserRepository
 from fastapi.security import OAuth2PasswordBearer, oauth2
 
+from app.services.document_service import DocumentService
+from app.services.file_service import FileService
 from app.services.user_service import UserService
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -24,10 +27,25 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserRepository:
     return UserRepository(db)
 
+async def get_document_repository(db: AsyncSession = Depends(get_db)) -> DocumentRepository:
+    return DocumentRepository(db)
+
+
 async def get_user_service(
         repo: UserRepository = Depends(get_user_repository)
 ) -> UserService:
     return UserService(repo)
+
+async def get_file_service() -> FileService:
+    return FileService()
+
+
+async def get_document_service(
+        repo: DocumentRepository = Depends(get_document_repository),
+        file_service: FileService = Depends(get_file_service)
+) -> DocumentService:
+    return DocumentService(repo, file_service)
+
 
 async def get_current_user(
         token: str = Depends(oauth2_scheme),

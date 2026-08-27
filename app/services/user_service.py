@@ -1,5 +1,6 @@
 from app.core.security import hash_password, verify_password, create_access_token
-from app.models import User
+from app.models import User, Document
+from app.models.enum import DocumentStatus
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import UserCreate, UserLogin, TokenResponse
 from fastapi import status, HTTPException
@@ -67,3 +68,4 @@ class UserService:
                 detail="User not found"
             )
         return user
+
