@@ -18,6 +18,8 @@ from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
 from app.services.embedding_service import EmbeddingService
 from app.services.file_service import FileService
+from app.services.llm_service import LLMService
+from app.services.rag_service import RAGService
 from app.services.search_service import SearchService
 from app.services.text_extraction_service import TextExtractionService
 from app.services.user_service import UserService
@@ -65,11 +67,25 @@ _embedding_service = EmbeddingService()
 async def get_embedding_service() -> EmbeddingService:
     return _embedding_service
 
+
+
+
+async def get_llm_service() -> LLMService:
+    return LLMService()
+
+
+
 async def get_search_service(
         chunk_repo: DocumentChunkRepository = Depends(get_document_chunk_repository),
         embedding_service: EmbeddingService = Depends(get_embedding_service),
 ) -> SearchService:
     return SearchService(chunk_repo, embedding_service)
+
+async def get_rag_service(
+        search_service: SearchService = Depends(get_search_service),
+        llm_service: LLMService = Depends(get_llm_service)
+) -> RAGService:
+    return RAGService(search_service, llm_service)
 
 
 async def get_document_service(
