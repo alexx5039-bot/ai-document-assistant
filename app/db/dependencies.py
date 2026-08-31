@@ -16,6 +16,7 @@ from fastapi.security import OAuth2PasswordBearer, oauth2
 
 from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
+from app.services.embedding_service import EmbeddingService
 from app.services.file_service import FileService
 from app.services.text_extraction_service import TextExtractionService
 from app.services.user_service import UserService
@@ -58,6 +59,9 @@ async def get_document_chunk_repository(
 ) -> DocumentChunkRepository:
     return DocumentChunkRepository(db)
 
+async def get_embedding_service() -> EmbeddingService:
+    return EmbeddingService()
+
 
 async def get_document_service(
         repo: DocumentRepository = Depends(get_document_repository),
@@ -65,7 +69,8 @@ async def get_document_service(
         text_extraction_service: TextExtractionService = Depends(get_text_extraction_service),
         document_content_repo: DocumentContentRepository = Depends(get_document_content_repository),
         chunking_service: ChunkingService = Depends(get_chunking_service),
-        chunk_repository: DocumentChunkRepository = Depends(get_document_chunk_repository)
+        chunk_repository: DocumentChunkRepository = Depends(get_document_chunk_repository),
+        embedding_service: EmbeddingService = Depends(get_embedding_service),
 ) -> DocumentService:
     return DocumentService(
         repo,
@@ -73,7 +78,8 @@ async def get_document_service(
         document_content_repo,
         text_extraction_service,
         chunking_service,
-        chunk_repository
+        chunk_repository,
+        embedding_service,
     )
 
 

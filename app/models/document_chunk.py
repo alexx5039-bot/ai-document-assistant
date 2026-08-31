@@ -3,7 +3,7 @@ from sqlalchemy import ForeignKey, Text, UniqueConstraint
 
 from app.db.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from pgvector.sqlalchemy import Vector
 if TYPE_CHECKING:
     from app.models.document import Document
 
@@ -25,6 +25,11 @@ class DocumentChunk(Base):
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     chunk_index: Mapped[int] = mapped_column(nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(
+        Vector(384),
+        nullable=True
+    )
+
 
     document: Mapped[Document] = relationship(
         back_populates="chunks"

@@ -6,6 +6,7 @@ from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_content_repository import DocumentContentRepository
 from app.repositories.document_repository import DocumentRepository
 from app.services.chunking_service import ChunkingService
+from app.services.embedding_service import EmbeddingService
 from app.services.file_service import FileService
 from app.services.text_extraction_service import TextExtractionService
 
@@ -18,7 +19,8 @@ class DocumentService:
             content_repo: DocumentContentRepository,
             text_extraction_service: TextExtractionService,
             chunking_service: ChunkingService,
-            chunks_repo: DocumentChunkRepository
+            chunks_repo: DocumentChunkRepository,
+            embedding_service: EmbeddingService
     ):
         self.repo = repo
         self.file_service = file_service
@@ -26,6 +28,7 @@ class DocumentService:
         self.text_extraction_service = text_extraction_service
         self.chunking_service = chunking_service
         self.chunks_repo = chunks_repo
+        self.embedding_service = embedding_service
 
 
     async def create_document(
@@ -143,11 +146,14 @@ class DocumentService:
                  )
 
             chunks = self.chunking_service.split_text(content)
+            embeddings = self.embedding_service.embed_many(chunks)
 
             await self.chunks_repo.delete_by_document_id(document.id)
+
             await self.chunks_repo.create_many(
                 document_id=document_id,
-                chunks=chunks
+                chunks=chunks,
+                embeddings=embeddings
             )
 
 

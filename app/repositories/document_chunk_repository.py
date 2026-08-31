@@ -14,6 +14,7 @@ class DocumentChunkRepository:
             self,
             document_id: int,
             chunks: list[str],
+            embeddings: list[list[float]]
     ) -> list[DocumentChunk]:
 
         document_chunks = [
@@ -21,8 +22,9 @@ class DocumentChunkRepository:
             document_id=document_id,
             chunk_index=index,
             content=content,
+            embedding=embedding
         )
-            for index, content in enumerate(chunks)
+            for index, (content, embedding) in enumerate(zip(chunks, embeddings))
         ]
         self.db.add_all(document_chunks)
         await self.db.commit()
