@@ -9,6 +9,7 @@ from app.models.enum import DocumentStatus
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.document_content import DocumentContent
+    from app.models.document_chunk import DocumentChunk
 
 
 class Document(Base):
@@ -38,4 +39,8 @@ class Document(Base):
         back_populates="document",
         cascade="all, delete-orphan",
         uselist=False
+    )
+    chunks: Mapped[DocumentChunk] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan"
     )

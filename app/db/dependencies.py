@@ -8,11 +8,13 @@ from starlette import status
 from app.core.security import decode_access_token
 from app.db.database import AsyncSessionLocal
 from app.models import User
+from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_content_repository import DocumentContentRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.user_repository import UserRepository
 from fastapi.security import OAuth2PasswordBearer, oauth2
 
+from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
 from app.services.file_service import FileService
 from app.services.text_extraction_service import TextExtractionService
@@ -37,8 +39,6 @@ async def get_document_content_repository(
 ) -> DocumentContentRepository:
     return DocumentContentRepository(db)
 
-
-
 async def get_user_service(
         repo: UserRepository = Depends(get_user_repository)
 ) -> UserService:
@@ -50,15 +50,32 @@ async def get_file_service() -> FileService:
 async def get_text_extraction_service() -> TextExtractionService:
     return TextExtractionService()
 
+async def get_chunking_service() -> ChunkingService:
+    return ChunkingService()
+
+async def get_document_chunk_repository(
+    db: AsyncSession = Depends(get_db),
+) -> DocumentChunkRepository:
+    return DocumentChunkRepository(db)
 
 
 async def get_document_service(
         repo: DocumentRepository = Depends(get_document_repository),
         file_service: FileService = Depends(get_file_service),
         text_extraction_service: TextExtractionService = Depends(get_text_extraction_service),
-        document_content_repo: DocumentContentRepository = Depends(get_document_content_repository)
+        document_content_repo: DocumentContentRepository = Depends(get_document_content_repository),
+        chunking_service: ChunkingService = Depends(get_chunking_service),
+        chunk_repository: DocumentChunkRepository = Depends(get_document_chunk_repository)
 ) -> DocumentService:
-    return DocumentService(repo, file_service, document_content_repo, text_extraction_service,)
+    return DocumentService(
+        repo,
+        file_service,
+        document_content_repo,
+        text_extraction_service,
+        chunking_service,
+        chunk_repository
+    )
+
 
 
 async def get_current_user(

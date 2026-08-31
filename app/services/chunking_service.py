@@ -1,0 +1,30 @@
+from app.repositories.document_chunk_repository import DocumentChunkRepository
+
+
+class ChunkingService:
+    def __init__(
+            self,
+            chunk_size: int = 1000,
+            chunk_overlap: int = 100,
+    ):
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+
+    def split_text(self, text: str) -> list[str]:
+        if not text.strip():
+            return []
+
+        chunks = []
+        start = 0
+        while start < len(text):
+
+            end = start + self.chunk_size
+            chunk = text[start:end].strip()
+
+            if chunk:
+                chunks.append(chunk)
+
+            start = end - self.chunk_overlap
+
+        return chunks
+

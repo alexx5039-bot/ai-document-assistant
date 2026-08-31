@@ -2,8 +2,10 @@ from fastapi import HTTPException, status, UploadFile
 
 from app.models import Document
 from app.models.enum import DocumentStatus
+from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_content_repository import DocumentContentRepository
 from app.repositories.document_repository import DocumentRepository
+from app.services.chunking_service import ChunkingService
 from app.services.file_service import FileService
 from app.services.text_extraction_service import TextExtractionService
 
@@ -14,12 +16,16 @@ class DocumentService:
             repo: DocumentRepository,
             file_service: FileService,
             content_repo: DocumentContentRepository,
-            text_extraction_service: TextExtractionService
+            text_extraction_service: TextExtractionService,
+            chunking_service: ChunkingService,
+            chunks_repo: DocumentChunkRepository
     ):
         self.repo = repo
         self.file_service = file_service
         self.content_repo = content_repo
         self.text_extraction_service = text_extraction_service
+        self.chunking_service = chunking_service
+        self.chunks_repo = chunks_repo
 
 
     async def create_document(
@@ -131,10 +137,20 @@ class DocumentService:
                     content,
                 )
             else:
-                await self.content_repo.create(
-                    document_id=document.id,
-                    content=content,
-                )
+                 await self.content_repo.create(
+                     document_id=document.id,
+                     content=content,
+                 )
+
+            chunks = self.chunking_service.split_text(content)
+
+            await self.chunks_repo.delete_by_document_id(document.id)
+            await self.chunks_repo.create_many(
+                document_id=document_id,
+                chunks=chunks
+            )
+
+
 
             return await self.repo.update_status(
                 document=document,
