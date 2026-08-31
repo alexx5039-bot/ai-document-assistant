@@ -8,6 +8,7 @@ from app.models.enum import DocumentStatus
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.document_content import DocumentContent
 
 
 class Document(Base):
@@ -32,4 +33,9 @@ class Document(Base):
     )
     user: Mapped["User"] = relationship(
         back_populates="documents"
+    )
+    content: Mapped["DocumentContent"] = relationship(
+        back_populates="document",
+        cascade="all, delete-orphan",
+        uselist=False
     )

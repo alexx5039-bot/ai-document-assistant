@@ -80,3 +80,17 @@ async def delete_document(
         document_id=document_id,
         user_id=current_user.id,
     )
+
+@router.post(
+    "/{document_id}/process",
+    response_model=DocumentResponse
+)
+async def process_document(
+        document_id: int,
+        current_user: User = Depends(get_current_user),
+        service: DocumentService = Depends(get_document_service)
+) -> Document:
+    return await service.process_document(
+        document_id=document_id,
+        user_id=current_user.id
+    )

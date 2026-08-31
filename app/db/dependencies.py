@@ -8,12 +8,14 @@ from starlette import status
 from app.core.security import decode_access_token
 from app.db.database import AsyncSessionLocal
 from app.models import User
+from app.repositories.document_content_repository import DocumentContentRepository
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.user_repository import UserRepository
 from fastapi.security import OAuth2PasswordBearer, oauth2
 
 from app.services.document_service import DocumentService
 from app.services.file_service import FileService
+from app.services.text_extraction_service import TextExtractionService
 from app.services.user_service import UserService
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -30,6 +32,12 @@ async def get_user_repository(db: AsyncSession = Depends(get_db)) -> UserReposit
 async def get_document_repository(db: AsyncSession = Depends(get_db)) -> DocumentRepository:
     return DocumentRepository(db)
 
+async def get_document_content_repository(
+        db: AsyncSession = Depends(get_db)
+) -> DocumentContentRepository:
+    return DocumentContentRepository(db)
+
+
 
 async def get_user_service(
         repo: UserRepository = Depends(get_user_repository)
@@ -39,12 +47,18 @@ async def get_user_service(
 async def get_file_service() -> FileService:
     return FileService()
 
+async def get_text_extraction_service() -> TextExtractionService:
+    return TextExtractionService()
+
+
 
 async def get_document_service(
         repo: DocumentRepository = Depends(get_document_repository),
-        file_service: FileService = Depends(get_file_service)
+        file_service: FileService = Depends(get_file_service),
+        text_extraction_service: TextExtractionService = Depends(get_text_extraction_service),
+        document_content_repo: DocumentContentRepository = Depends(get_document_content_repository)
 ) -> DocumentService:
-    return DocumentService(repo, file_service)
+    return DocumentService(repo, file_service, document_content_repo, text_extraction_service,)
 
 
 async def get_current_user(

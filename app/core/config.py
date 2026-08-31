@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str
     stripe_price_id: str
 
+    max_file_size: int
+    allowed_file_extensions: set[str]
+
     @property
     def database_url(self) -> str:
         return (
