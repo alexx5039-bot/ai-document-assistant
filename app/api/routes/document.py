@@ -1,10 +1,12 @@
 from fastapi import APIRouter, UploadFile, File, Depends, status
 
-from app.db.dependencies import get_current_user, get_document_service
+from app.db.dependencies import get_current_user, get_document_service, get_search_service
 from app.models import User, Document
 
 from app.schemas.document import DocumentResponse, DocumentStatusUpdate
+from app.schemas.search import SearchRequest, SearchResult
 from app.services.document_service import DocumentService
+from app.services.search_service import SearchService
 
 router = APIRouter()
 
@@ -93,4 +95,20 @@ async def process_document(
     return await service.process_document(
         document_id=document_id,
         user_id=current_user.id
+    )
+
+@router.post(
+    "/search",
+    response_model=list[SearchResult]
+)
+async def search_documents(
+        data: SearchRequest,
+        current_user: User = Depends(get_current_user),
+        service: SearchService = Depends(get_search_service)
+):
+    return await service.search(
+        user_id=current_user.id,
+        query=data.query,
+        document_id=data.document_id,
+        limit=data.limit
     )

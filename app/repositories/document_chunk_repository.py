@@ -1,4 +1,4 @@
-
+from pgvector.sqlalchemy import Vector
 
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,3 +43,35 @@ class DocumentChunkRepository:
 
         await self.db.execute(stmt)
         await self.db.commit()
+
+    async def search(
+            self,
+            user_id: int,
+            query_embedding: list[float],
+            document_id: int | None = None,
+            limit: int = 5,
+    ):
+        distance = DocumentChunk.embedding.cosine_distance(
+            query_embedding
+        ).label("distance")
+
+        conditions = [
+            Document.user_id == user_id,
+            DocumentChunk.embedding.is_not(None)
+        ]
+        if document_id is not None:
+            conditions.append(
+                Document.id == document_id
+            )
+
+        stmt = (
+            select(DocumentChunk, distance)
+            .join(Document)
+            .where(*conditions)
+            .order_by(distance)
+            .limit(limit)
+        )
+
+        result = await self.db.execute(stmt)
+
+        return result.all()
