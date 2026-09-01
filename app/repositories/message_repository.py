@@ -8,11 +8,21 @@ class MessageRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create(self, conversation_id) -> Message:
-        message = Message(conversation_id=conversation_id)
+    async def create(
+            self,
+            conversation_id,
+            role: str,
+            content: str
+    ) -> Message:
+
+        message = Message(
+            conversation_id=conversation_id,
+            role=role,
+            content=content
+        )
         self.db.add(message)
         await self.db.commit()
-        await self.db.refresh(Message)
+        await self.db.refresh(message)
 
         return message
 

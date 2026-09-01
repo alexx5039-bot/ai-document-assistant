@@ -128,7 +128,8 @@ async def ask(
         user_id=current_user.id,
         query=data.query,
         document_id=data.document_id,
-        limit=data.limit
+        limit=data.limit,
+        conversation_id=data.conversation_id
     )
     sources = [
         SourceResponse(

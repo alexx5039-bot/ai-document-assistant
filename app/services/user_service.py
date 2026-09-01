@@ -1,14 +1,21 @@
 from app.core.security import hash_password, verify_password, create_access_token
-from app.models import User, Document
-from app.models.enum import DocumentStatus
+from app.models import User
+
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import UserCreate, UserLogin, TokenResponse
 from fastapi import status, HTTPException
 
+from app.services.subscription_service import SubscriptionService
+
 
 class UserService:
-    def __init__(self, repo: UserRepository):
+    def __init__(
+            self,
+            repo: UserRepository,
+            subscription_service: SubscriptionService
+    ):
         self.repo = repo
+        self.subscription_service = subscription_service
 
     async def create_user(self, user_data: UserCreate) -> User:
 
@@ -21,10 +28,12 @@ class UserService:
             )
         password_hash = hash_password(user_data.password)
 
-        return await self.repo.create(
+        user = await self.repo.create(
             email=user_data.email,
             password_hash=password_hash
         )
+        await self.subscription_service.get_or_create(user_id=user.id)
+        return user
 
     async def authenticate(self, user_data: UserLogin) -> str:
         user = await self.repo.get_by_email(user_data.email)

@@ -6,7 +6,7 @@ from app.db.base import Base
 class Message(Base):
     __tablename__ = "messages"
 
-    conversation_id: Mapped["Conversation"] = mapped_column(
+    conversation_id: Mapped[int] = mapped_column(
         ForeignKey("conversations.id", ondelete="CASCADE"),
         nullable=False,
         index=True

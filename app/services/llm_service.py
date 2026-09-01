@@ -13,7 +13,8 @@ class LLMService:
     async def generate(
             self,
             query: str,
-            context: str
+            context: str,
+            history: str
     ) -> str:
         prompt = f"""
         You are a strict document question-answering assistant.
@@ -37,7 +38,10 @@ class LLMService:
         Context: "He knows Python."
         Question: "What is his favorite programming language?"
         Answer: "I don't have enough information in the provided documents."
-
+        
+        Conversation history:
+        {history}
+        
         Context:
         {context}
 

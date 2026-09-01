@@ -30,7 +30,7 @@ class Subscription(Base):
         nullable=True,
     )
 
-    plan: Mapped[str] = mapped_column(
+    plan: Mapped[SubscriptionPlan] = mapped_column(
         default=SubscriptionPlan.FREE,
         nullable=False,
     )

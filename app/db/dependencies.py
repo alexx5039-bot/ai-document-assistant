@@ -8,9 +8,12 @@ from starlette import status
 from app.core.security import decode_access_token
 from app.db.database import AsyncSessionLocal
 from app.models import User
+from app.repositories.conversation_repository import ConversationRepository
 from app.repositories.document_chunk_repository import DocumentChunkRepository
 from app.repositories.document_content_repository import DocumentContentRepository
 from app.repositories.document_repository import DocumentRepository
+from app.repositories.message_repository import MessageRepository
+from app.repositories.subscription_repository import SubscriptionRepository
 from app.repositories.user_repository import UserRepository
 from fastapi.security import OAuth2PasswordBearer, oauth2
 
@@ -21,6 +24,7 @@ from app.services.file_service import FileService
 from app.services.llm_service import LLMService
 from app.services.rag_service import RAGService
 from app.services.search_service import SearchService
+from app.services.subscription_service import SubscriptionService
 from app.services.text_extraction_service import TextExtractionService
 from app.services.user_service import UserService
 
@@ -43,10 +47,6 @@ async def get_document_content_repository(
 ) -> DocumentContentRepository:
     return DocumentContentRepository(db)
 
-async def get_user_service(
-        repo: UserRepository = Depends(get_user_repository)
-) -> UserService:
-    return UserService(repo)
 
 async def get_file_service() -> FileService:
     return FileService()
@@ -67,7 +67,32 @@ _embedding_service = EmbeddingService()
 async def get_embedding_service() -> EmbeddingService:
     return _embedding_service
 
+async def get_conversation_repository(
+        db: AsyncSession = Depends(get_db)
+) -> ConversationRepository:
+    return ConversationRepository(db)
 
+async def get_subscription_repository(
+        db: AsyncSession = Depends(get_db)
+) -> SubscriptionRepository:
+    return SubscriptionRepository(db)
+
+async def get_subscription_service(
+        repo: SubscriptionRepository = Depends(get_subscription_repository)
+) -> SubscriptionService:
+    return SubscriptionService(repo)
+
+async def get_user_service(
+        repo: UserRepository = Depends(get_user_repository),
+        subscription_service: SubscriptionService = Depends(get_subscription_service)
+) -> UserService:
+    return UserService(repo, subscription_service)
+
+
+async def get_message_repository(
+        db: AsyncSession = Depends(get_db)
+) -> MessageRepository:
+    return MessageRepository(db)
 
 
 async def get_llm_service() -> LLMService:
@@ -83,9 +108,11 @@ async def get_search_service(
 
 async def get_rag_service(
         search_service: SearchService = Depends(get_search_service),
-        llm_service: LLMService = Depends(get_llm_service)
+        llm_service: LLMService = Depends(get_llm_service),
+        conversation_repo: ConversationRepository = Depends(get_conversation_repository),
+        message_repo: MessageRepository = Depends(get_message_repository)
 ) -> RAGService:
-    return RAGService(search_service, llm_service)
+    return RAGService(search_service, llm_service, conversation_repo, message_repo)
 
 
 async def get_document_service(
