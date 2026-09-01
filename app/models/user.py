@@ -8,6 +8,7 @@ from app.db.base import Base
 if TYPE_CHECKING:
     from app.models.document import Document
     from app.models.subscription import Subscription
+    from app.models.conversation import Conversation
 
 
 class User(Base):
@@ -41,3 +42,7 @@ class User(Base):
        cascade="all, delete-orphan",
 
    )
+    conversations: Mapped[list["Conversation"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

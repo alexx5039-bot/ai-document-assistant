@@ -30,8 +30,7 @@ class SearchService:
             query_embedding=query_embedding,
             limit=limit,
         )
-
-        return [
+        search_results = [
             SearchResult(
                 document_id=chunk.document_id,
                 chunk_index=chunk.chunk_index,
@@ -40,3 +39,23 @@ class SearchService:
             )
             for chunk, distance in results
         ]
+
+        print(f"\nQUERY: {query}")
+
+        for result in search_results:
+            print(
+                f"\nchunk_index: {result.chunk_index}"
+                f"\nscore: {result.score:.4f}"
+                f"\ncontent:\n{result.content}"
+            )
+
+        return search_results
+        # return [
+        #     SearchResult(
+        #         document_id=chunk.document_id,
+        #         chunk_index=chunk.chunk_index,
+        #         content=chunk.content,
+        #         score=1 - distance,
+        #     )
+        #     for chunk, distance in results
+        # ]

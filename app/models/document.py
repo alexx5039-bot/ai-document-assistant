@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from app.models.document_chunk import DocumentChunk
 
 
+
 class Document(Base):
     __tablename__ = "documents"
 

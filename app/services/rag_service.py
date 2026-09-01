@@ -1,3 +1,4 @@
+from app.schemas.ask import SourceResponse
 from app.services.llm_service import LLMService
 from app.services.search_service import SearchService
 
@@ -26,13 +27,15 @@ class RAGService:
             limit=limit
         )
         if not results:
-            return "I couldn't find relevant information in the documents."
+            return "", []
 
         context = "\n\n".join(
             result.content
             for result in results
         )
-        return await self.llm_service.generate(
+        answer = await self.llm_service.generate(
             query=query,
             context=context,
         )
+
+        return answer, results

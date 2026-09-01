@@ -7,4 +7,9 @@ class AskRequest(BaseModel):
 
 class AskResponse(BaseModel):
     answer: str
+    sources: list[SourceResponse]
 
+class SourceResponse(BaseModel):
+    document_id: int
+    chunk_index : int
+    score: float

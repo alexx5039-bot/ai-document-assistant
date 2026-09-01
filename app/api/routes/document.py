@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile, File, Depends, status
 
 from app.db.dependencies import get_current_user, get_document_service, get_search_service, get_rag_service
 from app.models import User, Document
-from app.schemas.ask import AskResponse, AskRequest
+from app.schemas.ask import AskResponse, AskRequest, SourceResponse
 
 from app.schemas.document import DocumentResponse, DocumentStatusUpdate
 from app.schemas.search import SearchRequest, SearchResult
@@ -124,10 +124,21 @@ async def ask(
         current_user: User = Depends(get_current_user),
         service: RAGService = Depends(get_rag_service)
 ):
-    answer = await service.answer(
+    answer, results = await service.answer(
         user_id=current_user.id,
         query=data.query,
         document_id=data.document_id,
         limit=data.limit
     )
-    return AskResponse(answer=answer)
+    sources = [
+        SourceResponse(
+            document_id=result.document_id,
+            chunk_index=result.chunk_index,
+            score=result.score,
+        )
+        for result in results
+    ]
+    return AskResponse(
+        answer=answer,
+        sources=sources,
+        )
