@@ -8,6 +8,7 @@ from app.repositories.document_repository import DocumentRepository
 from app.services.chunking_service import ChunkingService
 from app.services.embedding_service import EmbeddingService
 from app.services.file_service import FileService
+from app.services.subscription_service import SubscriptionService
 from app.services.text_extraction_service import TextExtractionService
 
 
@@ -20,7 +21,8 @@ class DocumentService:
             text_extraction_service: TextExtractionService,
             chunking_service: ChunkingService,
             chunks_repo: DocumentChunkRepository,
-            embedding_service: EmbeddingService
+            embedding_service: EmbeddingService,
+            subscription_service: SubscriptionService
     ):
         self.repo = repo
         self.file_service = file_service
@@ -29,6 +31,7 @@ class DocumentService:
         self.chunking_service = chunking_service
         self.chunks_repo = chunks_repo
         self.embedding_service = embedding_service
+        self.subscription_service = subscription_service
 
 
     async def create_document(
@@ -36,6 +39,13 @@ class DocumentService:
             user_id: int,
             file: UploadFile,
     ) -> Document:
+        can_upload = await self.subscription_service.can_upload_document(user_id)
+
+        if not can_upload:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Document upload limit reached"
+            )
         file_path = await self.file_service.save(file)
 
         return await self.repo.create(

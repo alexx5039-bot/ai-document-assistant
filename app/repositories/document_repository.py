@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import User, Document
@@ -41,6 +41,14 @@ class DocumentRepository:
         ).order_by(Document.created_at.desc())
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+    async def count_by_user(self, user_id: int) -> int:
+        stmt = select(func.count(Document.id).where(
+            Document.user_id == user_id
+        ))
+        result = await self.db.execute(stmt)
+        return result.scalar_one()
+
 
     async def delete(self, document: Document):
         await self.db.delete(document)

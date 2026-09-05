@@ -1,9 +1,9 @@
 from collections.abc import AsyncGenerator
 
 import jwt
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
+
 
 from app.core.security import decode_access_token
 from app.db.database import AsyncSessionLocal
@@ -24,6 +24,7 @@ from app.services.file_service import FileService
 from app.services.llm_service import LLMService
 from app.services.rag_service import RAGService
 from app.services.search_service import SearchService
+from app.services.stripe_service import StripeService
 from app.services.subscription_service import SubscriptionService
 from app.services.text_extraction_service import TextExtractionService
 from app.services.user_service import UserService
@@ -78,9 +79,10 @@ async def get_subscription_repository(
     return SubscriptionRepository(db)
 
 async def get_subscription_service(
-        repo: SubscriptionRepository = Depends(get_subscription_repository)
+        repo: SubscriptionRepository = Depends(get_subscription_repository),
+        document_repo: DocumentRepository = Depends(get_document_repository)
 ) -> SubscriptionService:
-    return SubscriptionService(repo)
+    return SubscriptionService(repo, document_repo)
 
 async def get_user_service(
         repo: UserRepository = Depends(get_user_repository),
@@ -98,6 +100,8 @@ async def get_message_repository(
 async def get_llm_service() -> LLMService:
     return LLMService()
 
+async def get_stripe_service() -> StripeService:
+    return StripeService()
 
 
 async def get_search_service(
@@ -123,6 +127,7 @@ async def get_document_service(
         chunking_service: ChunkingService = Depends(get_chunking_service),
         chunk_repository: DocumentChunkRepository = Depends(get_document_chunk_repository),
         embedding_service: EmbeddingService = Depends(get_embedding_service),
+        subscription_service: SubscriptionService = Depends(get_subscription_service)
 ) -> DocumentService:
     return DocumentService(
         repo,
@@ -132,6 +137,7 @@ async def get_document_service(
         chunking_service,
         chunk_repository,
         embedding_service,
+        subscription_service,
     )
 
 
