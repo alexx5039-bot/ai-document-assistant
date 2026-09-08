@@ -4,11 +4,19 @@ from fastapi import APIRouter, Depends, Request, HTTPException, status
 from app.db.dependencies import get_stripe_service, get_current_user, get_subscription_service
 from app.models import User
 from app.models.enum import SubscriptionPlan
+from app.schemas.subscription import SubscriptionResponse
 from app.services.stripe_service import StripeService
 from app.core.config import settings
 from app.services.subscription_service import SubscriptionService
 
 router = APIRouter()
+
+@router.get("/me", response_model=SubscriptionResponse)
+async def get_my_subscription(
+        current_user: User = Depends(get_current_user),
+        service: SubscriptionService = Depends(get_subscription_service)
+):
+    return await service.get_subscription_info(current_user.id)
 
 
 @router.post("/checkout")

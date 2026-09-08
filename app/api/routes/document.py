@@ -9,6 +9,7 @@ from app.schemas.search import SearchRequest, SearchResult
 from app.services.document_service import DocumentService
 from app.services.rag_service import RAGService
 from app.services.search_service import SearchService
+from app.worker.tasks import process_document_task
 
 router = APIRouter()
 
@@ -21,10 +22,12 @@ async def create_document(
         current_user: User = Depends(get_current_user),
         service: DocumentService = Depends(get_document_service)
 ) -> Document:
+
     return await service.create_document(
         user_id=current_user.id,
-        file=file
+        file=file,
     )
+
 
 @router.get(
     "/{document_id}",
@@ -94,10 +97,18 @@ async def process_document(
         current_user: User = Depends(get_current_user),
         service: DocumentService = Depends(get_document_service)
 ) -> Document:
-    return await service.process_document(
+
+    document = await service.get_document_by_id(
         document_id=document_id,
-        user_id=current_user.id
+        user_id=current_user.id,
     )
+
+    process_document_task.delay(
+        document_id=document_id,
+        user_id=current_user.id,
+    )
+
+    return document
 
 @router.post(
     "/search",

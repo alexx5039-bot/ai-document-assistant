@@ -4,6 +4,7 @@ from app.models import Subscription
 from app.models.enum import SubscriptionPlan
 from app.repositories.document_repository import DocumentRepository
 from app.repositories.subscription_repository import SubscriptionRepository
+from app.schemas.subscription import SubscriptionResponse
 
 
 class SubscriptionService:
@@ -23,6 +24,9 @@ class SubscriptionService:
 
     async def can_upload_document(self, user_id: int) -> bool:
         subscription = await self.subscription_repo.get_subscription_by_user_id(user_id=user_id)
+        if subscription is None:
+            return False
+
         quantity = await self.document_repo.count_by_user(user_id=user_id)
 
         if subscription.plan == SubscriptionPlan.FREE:
@@ -44,3 +48,28 @@ class SubscriptionService:
 
         return subscription
 
+    async def get_subscription_info(self, user_id: int) -> SubscriptionResponse:
+        subscription = await self.subscription_repo.get_subscription_by_user_id(user_id)
+
+        if subscription is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Subscription not found"
+            )
+        documents_used = await self.document_repo.count_by_user(user_id)
+
+        if subscription.plan == SubscriptionPlan.FREE:
+            documents_limit = 3
+
+        if subscription.plan == SubscriptionPlan.PRO:
+            documents_limit = 50
+
+        else:
+            documents_limit = 0
+
+        return SubscriptionResponse(
+            plan=subscription.plan,
+            status=subscription.status,
+            documents_used=documents_used,
+            documents_limit=documents_limit
+        )

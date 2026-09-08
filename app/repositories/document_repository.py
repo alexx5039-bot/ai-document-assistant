@@ -43,9 +43,9 @@ class DocumentRepository:
         return list(result.scalars().all())
 
     async def count_by_user(self, user_id: int) -> int:
-        stmt = select(func.count(Document.id).where(
+        stmt = select(func.count(Document.id)).where(
             Document.user_id == user_id
-        ))
+        )
         result = await self.db.execute(stmt)
         return result.scalar_one()
 

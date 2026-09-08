@@ -16,5 +16,6 @@ class DocumentResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
 class DocumentStatusUpdate(BaseModel):
     status: DocumentStatus
