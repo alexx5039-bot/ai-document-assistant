@@ -1,5 +1,7 @@
 from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     postgres_db: str
@@ -7,7 +9,6 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_host: str = "postgres"
     postgres_port: int = 5432
-
 
     secret_key: str
     algorithm: str = "HS256"

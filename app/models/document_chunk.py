@@ -1,11 +1,14 @@
 from typing import TYPE_CHECKING
+
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from pgvector.sqlalchemy import Vector
+
 if TYPE_CHECKING:
     from app.models.document import Document
+
 
 class DocumentChunk(Base):
     __tablename__ = "document_chunk"
@@ -19,18 +22,10 @@ class DocumentChunk(Base):
     )
 
     document_id: Mapped[int] = mapped_column(
-        ForeignKey("documents.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
+        ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     chunk_index: Mapped[int] = mapped_column(nullable=False)
-    embedding: Mapped[list[float]] = mapped_column(
-        Vector(384),
-        nullable=True
-    )
+    embedding: Mapped[list[float]] = mapped_column(Vector(384), nullable=True)
 
-
-    document: Mapped[Document] = relationship(
-        back_populates="chunks"
-    )
+    document: Mapped[Document] = relationship(back_populates="chunks")

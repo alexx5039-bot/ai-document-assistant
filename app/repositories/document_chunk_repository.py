@@ -1,9 +1,7 @@
-from pgvector.sqlalchemy import Vector
-
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import DocumentChunk, Document
+from app.models import Document, DocumentChunk
 
 
 class DocumentChunkRepository:
@@ -11,29 +9,28 @@ class DocumentChunkRepository:
         self.db = db
 
     async def create_many(
-            self,
-            document_id: int,
-            chunks: list[str],
-            embeddings: list[list[float]]
+        self, document_id: int, chunks: list[str], embeddings: list[list[float]]
     ) -> list[DocumentChunk]:
 
         document_chunks = [
             DocumentChunk(
-            document_id=document_id,
-            chunk_index=index,
-            content=content,
-            embedding=embedding
-        )
+                document_id=document_id,
+                chunk_index=index,
+                content=content,
+                embedding=embedding,
+            )
             for index, (content, embedding) in enumerate(zip(chunks, embeddings))
         ]
         self.db.add_all(document_chunks)
         await self.db.commit()
         return document_chunks
 
-
     async def get_by_document_id(self, document_id: int) -> list[DocumentChunk]:
-        stmt = (select(DocumentChunk).where(Document.id == document_id)
-                .order_by(DocumentChunk.chunk_index.desc()))
+        stmt = (
+            select(DocumentChunk)
+            .where(Document.id == document_id)
+            .order_by(DocumentChunk.chunk_index.desc())
+        )
         result = await self.db.execute(stmt)
         chunks = result.scalars().all()
         return list(chunks)
@@ -45,24 +42,19 @@ class DocumentChunkRepository:
         await self.db.commit()
 
     async def search(
-            self,
-            user_id: int,
-            query_embedding: list[float],
-            document_id: int | None = None,
-            limit: int = 5,
+        self,
+        user_id: int,
+        query_embedding: list[float],
+        document_id: int | None = None,
+        limit: int = 5,
     ):
-        distance = DocumentChunk.embedding.cosine_distance(
-            query_embedding
-        ).label("distance")
+        distance = DocumentChunk.embedding.cosine_distance(query_embedding).label(
+            "distance"
+        )
 
-        conditions = [
-            Document.user_id == user_id,
-            DocumentChunk.embedding.is_not(None)
-        ]
+        conditions = [Document.user_id == user_id, DocumentChunk.embedding.is_not(None)]
         if document_id is not None:
-            conditions.append(
-                Document.id == document_id
-            )
+            conditions.append(Document.id == document_id)
 
         stmt = (
             select(DocumentChunk, distance)

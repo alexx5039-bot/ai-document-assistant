@@ -1,9 +1,10 @@
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock
-from datetime import datetime, timezone
+
 from fastapi.testclient import TestClient
 
+from app.db.dependencies import get_current_user, get_user_service
 from app.main import app
-from app.db.dependencies import get_user_service, get_current_user
 
 
 def test_register():
@@ -11,7 +12,7 @@ def test_register():
     user.id = 1
     user.email = "test@example.com"
     user.is_active = True
-    user.created_at = datetime.now(timezone.utc)
+    user.created_at = datetime.now(UTC)
 
     service = Mock()
     service.create_user = AsyncMock(return_value=user)
@@ -34,6 +35,7 @@ def test_register():
 
     service.create_user.assert_awaited_once()
     app.dependency_overrides.clear()
+
 
 def test_login():
     service = Mock()
@@ -62,12 +64,13 @@ def test_login():
 
     app.dependency_overrides.clear()
 
+
 def test_me():
     user = Mock()
     user.id = 1
     user.email = "test@example.com"
     user.is_active = True
-    user.created_at = datetime.now(timezone.utc)
+    user.created_at = datetime.now(UTC)
 
     app.dependency_overrides[get_current_user] = lambda: user
 

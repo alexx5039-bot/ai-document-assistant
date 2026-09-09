@@ -17,23 +17,21 @@ class ConversationRepository:
         return conversation
 
     async def get_by_id(
-            self,
-            conversation_id: int,
+        self,
+        conversation_id: int,
     ) -> Conversation | None:
         result = await self.db.execute(
-            select(Conversation)
-            .where(Conversation.id == conversation_id)
+            select(Conversation).where(Conversation.id == conversation_id)
         )
 
         return result.scalar_one_or_none()
 
     async def get_by_user(
-            self,
-            user_id: int,
+        self,
+        user_id: int,
     ) -> list[Conversation]:
         result = await self.db.execute(
-            select(Conversation)
-            .where(Conversation.user_id == user_id)
+            select(Conversation).where(Conversation.user_id == user_id)
         )
 
         return list(result.scalars().all())

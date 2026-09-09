@@ -6,16 +6,10 @@ from app.core.config import settings
 class LLMService:
     def __init__(self):
         self.llm = ChatMistralAI(
-            model="mistral-small-latest",
-            api_key=settings.mistral_api_key
+            model="mistral-small-latest", api_key=settings.mistral_api_key
         )
 
-    async def generate(
-            self,
-            query: str,
-            context: str,
-            history: str
-    ) -> str:
+    async def generate(self, query: str, context: str, history: str) -> str:
         prompt = f"""
         You are a strict document question-answering assistant.
 

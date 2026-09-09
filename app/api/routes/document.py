@@ -1,9 +1,13 @@
-from fastapi import APIRouter, UploadFile, File, Depends, status
+from fastapi import APIRouter, Depends, File, UploadFile, status
 
-from app.db.dependencies import get_current_user, get_document_service, get_search_service, get_rag_service
-from app.models import User, Document
-from app.schemas.ask import AskResponse, AskRequest, SourceResponse
-
+from app.db.dependencies import (
+    get_current_user,
+    get_document_service,
+    get_rag_service,
+    get_search_service,
+)
+from app.models import Document, User
+from app.schemas.ask import AskRequest, AskResponse, SourceResponse
 from app.schemas.document import DocumentResponse, DocumentStatusUpdate
 from app.schemas.search import SearchRequest, SearchResult
 from app.services.document_service import DocumentService
@@ -13,14 +17,12 @@ from app.worker.tasks import process_document_task
 
 router = APIRouter()
 
-@router.post("",
-             response_model=DocumentResponse,
-             status_code=status.HTTP_201_CREATED
-             )
+
+@router.post("", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
 async def create_document(
-        file: UploadFile = File(...),
-        current_user: User = Depends(get_current_user),
-        service: DocumentService = Depends(get_document_service)
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    service: DocumentService = Depends(get_document_service),
 ) -> Document:
 
     return await service.create_document(
@@ -30,37 +32,30 @@ async def create_document(
 
 
 @router.get(
-    "/{document_id}",
-    response_model=DocumentResponse,
-    status_code=status.HTTP_200_OK
+    "/{document_id}", response_model=DocumentResponse, status_code=status.HTTP_200_OK
 )
 async def get_document(
     document_id: int,
     current_user: User = Depends(get_current_user),
-    service: DocumentService = Depends(get_document_service)
+    service: DocumentService = Depends(get_document_service),
 ) -> Document | None:
     return await service.get_document_by_id(
-        document_id=document_id,
-        user_id=current_user.id
+        document_id=document_id, user_id=current_user.id
     )
 
-@router.get(
-    "",
-    response_model=list[DocumentResponse],
-    status_code=status.HTTP_200_OK
-)
+
+@router.get("", response_model=list[DocumentResponse], status_code=status.HTTP_200_OK)
 async def get_user_documents(
     current_user: User = Depends(get_current_user),
-    service: DocumentService = Depends(get_document_service)
+    service: DocumentService = Depends(get_document_service),
 ) -> list[Document]:
-    return await service.get_documents(
-        user_id=current_user.id
-    )
+    return await service.get_documents(user_id=current_user.id)
+
 
 @router.patch(
     "/{document_id}/status",
     response_model=DocumentResponse,
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
 )
 async def update_document_status(
     document_id: int,
@@ -69,10 +64,9 @@ async def update_document_status(
     service: DocumentService = Depends(get_document_service),
 ) -> Document:
     return await service.update_document_status(
-        document_id=document_id,
-        user_id=current_user.id,
-        document_status=data.status
+        document_id=document_id, user_id=current_user.id, document_status=data.status
     )
+
 
 @router.delete(
     "/{document_id}",
@@ -88,14 +82,12 @@ async def delete_document(
         user_id=current_user.id,
     )
 
-@router.post(
-    "/{document_id}/process",
-    response_model=DocumentResponse
-)
+
+@router.post("/{document_id}/process", response_model=DocumentResponse)
 async def process_document(
-        document_id: int,
-        current_user: User = Depends(get_current_user),
-        service: DocumentService = Depends(get_document_service)
+    document_id: int,
+    current_user: User = Depends(get_current_user),
+    service: DocumentService = Depends(get_document_service),
 ) -> Document:
 
     document = await service.get_document_by_id(
@@ -110,37 +102,33 @@ async def process_document(
 
     return document
 
-@router.post(
-    "/search",
-    response_model=list[SearchResult]
-)
+
+@router.post("/search", response_model=list[SearchResult])
 async def search_documents(
-        data: SearchRequest,
-        current_user: User = Depends(get_current_user),
-        service: SearchService = Depends(get_search_service)
+    data: SearchRequest,
+    current_user: User = Depends(get_current_user),
+    service: SearchService = Depends(get_search_service),
 ):
     return await service.search(
         user_id=current_user.id,
         query=data.query,
         document_id=data.document_id,
-        limit=data.limit
+        limit=data.limit,
     )
 
-@router.post(
-    "/ask/",
-    response_model=AskResponse
-)
+
+@router.post("/ask/", response_model=AskResponse)
 async def ask(
-        data: AskRequest,
-        current_user: User = Depends(get_current_user),
-        service: RAGService = Depends(get_rag_service)
+    data: AskRequest,
+    current_user: User = Depends(get_current_user),
+    service: RAGService = Depends(get_rag_service),
 ):
     answer, results = await service.answer(
         user_id=current_user.id,
         query=data.query,
         document_id=data.document_id,
         limit=data.limit,
-        conversation_id=data.conversation_id
+        conversation_id=data.conversation_id,
     )
     sources = [
         SourceResponse(
@@ -153,4 +141,4 @@ async def ask(
     return AskResponse(
         answer=answer,
         sources=sources,
-        )
+    )

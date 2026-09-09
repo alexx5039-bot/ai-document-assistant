@@ -1,11 +1,8 @@
-from app.repositories.document_chunk_repository import DocumentChunkRepository
-
-
 class ChunkingService:
     def __init__(
-            self,
-            chunk_size: int = 1000,
-            chunk_overlap: int = 100,
+        self,
+        chunk_size: int = 1000,
+        chunk_overlap: int = 100,
     ):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
@@ -17,7 +14,6 @@ class ChunkingService:
         chunks = []
         start = 0
         while start < len(text):
-
             end = start + self.chunk_size
             chunk = text[start:end].strip()
 
@@ -27,4 +23,3 @@ class ChunkingService:
             start = end - self.chunk_overlap
 
         return chunks
-

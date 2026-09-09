@@ -9,9 +9,9 @@ from app.schemas.subscription import SubscriptionResponse
 
 class SubscriptionService:
     def __init__(
-            self,
-            subscription_repo: SubscriptionRepository,
-            document_repo: DocumentRepository
+        self,
+        subscription_repo: SubscriptionRepository,
+        document_repo: DocumentRepository,
     ):
         self.subscription_repo = subscription_repo
         self.document_repo = document_repo
@@ -23,7 +23,9 @@ class SubscriptionService:
         return subscription
 
     async def can_upload_document(self, user_id: int) -> bool:
-        subscription = await self.subscription_repo.get_subscription_by_user_id(user_id=user_id)
+        subscription = await self.subscription_repo.get_subscription_by_user_id(
+            user_id=user_id
+        )
         if subscription is None:
             return False
 
@@ -37,8 +39,7 @@ class SubscriptionService:
 
     async def update_plan(self, user_id: int, plan: SubscriptionPlan) -> Subscription:
         subscription = await self.subscription_repo.update_plan(
-            user_id=user_id,
-            plan=plan
+            user_id=user_id, plan=plan
         )
         if subscription is None:
             raise HTTPException(
@@ -53,8 +54,7 @@ class SubscriptionService:
 
         if subscription is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Subscription not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Subscription not found"
             )
         documents_used = await self.document_repo.count_by_user(user_id)
 
@@ -71,5 +71,5 @@ class SubscriptionService:
             plan=subscription.plan,
             status=subscription.status,
             documents_used=documents_used,
-            documents_limit=documents_limit
+            documents_limit=documents_limit,
         )

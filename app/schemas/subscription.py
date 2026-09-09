@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
 from app.models.enum import SubscriptionPlan, SubscriptionStatus
-from app.models.subscription import Subscription
 
 
 class SubscriptionResponse(BaseModel):

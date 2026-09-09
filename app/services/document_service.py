@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status, UploadFile
+from fastapi import HTTPException, UploadFile, status
 
 from app.models import Document
 from app.models.enum import DocumentStatus
@@ -14,15 +14,15 @@ from app.services.text_extraction_service import TextExtractionService
 
 class DocumentService:
     def __init__(
-            self,
-            repo: DocumentRepository,
-            file_service: FileService,
-            content_repo: DocumentContentRepository,
-            text_extraction_service: TextExtractionService,
-            chunking_service: ChunkingService,
-            chunks_repo: DocumentChunkRepository,
-            embedding_service: EmbeddingService,
-            subscription_service: SubscriptionService
+        self,
+        repo: DocumentRepository,
+        file_service: FileService,
+        content_repo: DocumentContentRepository,
+        text_extraction_service: TextExtractionService,
+        chunking_service: ChunkingService,
+        chunks_repo: DocumentChunkRepository,
+        embedding_service: EmbeddingService,
+        subscription_service: SubscriptionService,
     ):
         self.repo = repo
         self.file_service = file_service
@@ -33,90 +33,64 @@ class DocumentService:
         self.embedding_service = embedding_service
         self.subscription_service = subscription_service
 
-
     async def create_document(
-            self,
-            user_id: int,
-            file: UploadFile,
+        self,
+        user_id: int,
+        file: UploadFile,
     ) -> Document:
         can_upload = await self.subscription_service.can_upload_document(user_id)
 
         if not can_upload:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Document upload limit reached"
+                detail="Document upload limit reached",
             )
         file_path = await self.file_service.save(file)
 
         return await self.repo.create(
-            user_id=user_id,
-            filename=file.filename,
-            file_path=file_path
+            user_id=user_id, filename=file.filename, file_path=file_path
         )
 
     async def get_document_by_id(
-            self,
-            document_id: int,
-            user_id: int
+        self, document_id: int, user_id: int
     ) -> Document | None:
-        document = await self.repo.get_by_id(
-            document_id=document_id,
-            user_id=user_id
-        )
+        document = await self.repo.get_by_id(document_id=document_id, user_id=user_id)
         if document is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Document is not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Document is not found"
             )
         return document
 
-    async def get_documents(
-            self,
-            user_id: int
-    ) -> list[Document]:
-        documents = await self.repo.get_by_user(
-             user_id=user_id
-        )
+    async def get_documents(self, user_id: int) -> list[Document]:
+        documents = await self.repo.get_by_user(user_id=user_id)
 
         return documents
 
     async def update_document_status(
-            self,
-            document_id: int,
-            user_id: int,
-            document_status: DocumentStatus
+        self, document_id: int, user_id: int, document_status: DocumentStatus
     ) -> Document:
 
-        document = await self.repo.get_by_id(
-            document_id=document_id,
-            user_id=user_id
-        )
+        document = await self.repo.get_by_id(document_id=document_id, user_id=user_id)
         if document is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Document is not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Document is not found"
             )
         return await self.repo.update_status(document, document_status)
 
-
     async def delete_document(self, document_id: int, user_id: int) -> None:
 
-        document = await self.repo.get_by_id(
-            document_id=document_id,
-            user_id=user_id
-        )
+        document = await self.repo.get_by_id(document_id=document_id, user_id=user_id)
 
         if document is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Document is not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Document is not found"
             )
         await self.repo.delete(document)
 
     async def process_document(
-            self,
-            document_id: int,
-            user_id: int,
+        self,
+        document_id: int,
+        user_id: int,
     ) -> Document:
 
         document = await self.repo.get_by_id(
@@ -150,10 +124,10 @@ class DocumentService:
                     content,
                 )
             else:
-                 await self.content_repo.create(
-                     document_id=document.id,
-                     content=content,
-                 )
+                await self.content_repo.create(
+                    document_id=document.id,
+                    content=content,
+                )
 
             chunks = self.chunking_service.split_text(content)
             embeddings = self.embedding_service.embed_many(chunks)
@@ -161,12 +135,8 @@ class DocumentService:
             await self.chunks_repo.delete_by_document_id(document.id)
 
             await self.chunks_repo.create_many(
-                document_id=document_id,
-                chunks=chunks,
-                embeddings=embeddings
+                document_id=document_id, chunks=chunks, embeddings=embeddings
             )
-
-
 
             return await self.repo.update_status(
                 document=document,

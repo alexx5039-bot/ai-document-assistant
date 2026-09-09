@@ -1,19 +1,14 @@
-from app.core.security import hash_password, verify_password, create_access_token
+from fastapi import HTTPException, status
+
+from app.core.security import create_access_token, hash_password, verify_password
 from app.models import User
-
 from app.repositories.user_repository import UserRepository
-from app.schemas.auth import UserCreate, UserLogin, TokenResponse
-from fastapi import status, HTTPException
-
+from app.schemas.auth import UserCreate, UserLogin
 from app.services.subscription_service import SubscriptionService
 
 
 class UserService:
-    def __init__(
-            self,
-            repo: UserRepository,
-            subscription_service: SubscriptionService
-    ):
+    def __init__(self, repo: UserRepository, subscription_service: SubscriptionService):
         self.repo = repo
         self.subscription_service = subscription_service
 
@@ -29,8 +24,7 @@ class UserService:
         password_hash = hash_password(user_data.password)
 
         user = await self.repo.create(
-            email=user_data.email,
-            password_hash=password_hash
+            email=user_data.email, password_hash=password_hash
         )
         await self.subscription_service.get_or_create(user_id=user.id)
         return user
@@ -41,12 +35,12 @@ class UserService:
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid email or password"
+                detail="Invalid email or password",
             )
         if not verify_password(user_data.password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid email or password"
+                detail="Invalid email or password",
             )
         if not user.is_active:
             raise HTTPException(
@@ -56,15 +50,12 @@ class UserService:
 
         return create_access_token(user.id)
 
-
-
     async def get_user(self, user_id: int) -> User | None:
         user = await self.repo.get_by_id(user_id=user_id)
 
         if user is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
         return user
 
@@ -73,8 +64,6 @@ class UserService:
 
         if user is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
         return user
-

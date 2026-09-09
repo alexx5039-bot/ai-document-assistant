@@ -1,8 +1,7 @@
 from io import BytesIO
-
-import pytest
 from unittest.mock import AsyncMock
 
+import pytest
 from fastapi import HTTPException, UploadFile
 
 from app.services.document_service import DocumentService
@@ -37,12 +36,10 @@ async def test_create_document_fails_when_upload_limit_reached():
     )
 
     with pytest.raises(HTTPException) as exc_info:
-        await service.create_document(
-            user_id=1,
-            file=file
-        )
+        await service.create_document(user_id=1, file=file)
     assert exc_info.value.status_code == 403
     assert exc_info.value.detail == "Document upload limit reached"
+
 
 @pytest.mark.asyncio
 async def test_create_document_success():

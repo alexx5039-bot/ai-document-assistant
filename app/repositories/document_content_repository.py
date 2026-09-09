@@ -8,11 +8,7 @@ class DocumentContentRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create(
-            self,
-            document_id: int,
-            content: str
-    ) -> DocumentContent:
+    async def create(self, document_id: int, content: str) -> DocumentContent:
 
         document_content = DocumentContent(
             document_id=document_id,
@@ -32,9 +28,7 @@ class DocumentContentRepository:
         return result.scalar_one_or_none()
 
     async def update(
-            self,
-            document_content: DocumentContent,
-            content: str
+        self, document_content: DocumentContent, content: str
     ) -> DocumentContent:
 
         document_content.content = content

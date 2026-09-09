@@ -1,11 +1,11 @@
 from pathlib import Path
-from docx import Document as DocxDocument
 
+from docx import Document as DocxDocument
 from fastapi import HTTPException, status
 from pypdf import PdfReader
 
-class TextExtractionService:
 
+class TextExtractionService:
     async def extract(self, file_path: str) -> str:
         extension = Path(file_path).suffix.lower()
 
@@ -22,6 +22,7 @@ class TextExtractionService:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unsupported file type: {extension}",
         )
+
     def _extract_pdf(self, file_path: str) -> str:
         reader = PdfReader(file_path)
 

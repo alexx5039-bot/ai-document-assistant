@@ -1,47 +1,32 @@
-
 from typing import TYPE_CHECKING
-from sqlalchemy import ForeignKey, String, func
+
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.enum import DocumentStatus
 
 if TYPE_CHECKING:
-    from app.models.user import User
-    from app.models.document_content import DocumentContent
     from app.models.document_chunk import DocumentChunk
-
+    from app.models.document_content import DocumentContent
+    from app.models.user import User
 
 
 class Document(Base):
     __tablename__ = "documents"
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    filename: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False
-    )
-    file_path: Mapped[str] = mapped_column(
-        String(500),
-        nullable=False
-    )
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    file_path: Mapped[str] = mapped_column(String(500), nullable=False)
     status: Mapped[DocumentStatus] = mapped_column(
-        default=DocumentStatus.UPLOADED,
-        nullable=False
+        default=DocumentStatus.UPLOADED, nullable=False
     )
-    user: Mapped["User"] = relationship(
-        back_populates="documents"
-    )
-    content: Mapped["DocumentContent"] = relationship(
-        back_populates="document",
-        cascade="all, delete-orphan",
-        uselist=False
+    user: Mapped[User] = relationship(back_populates="documents")
+    content: Mapped[DocumentContent] = relationship(
+        back_populates="document", cascade="all, delete-orphan", uselist=False
     )
     chunks: Mapped[DocumentChunk] = relationship(
-        back_populates="document",
-        cascade="all, delete-orphan"
+        back_populates="document", cascade="all, delete-orphan"
     )

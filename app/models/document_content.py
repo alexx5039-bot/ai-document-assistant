@@ -1,7 +1,8 @@
 from sqlalchemy import ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.models.document import Document
+
 from app.db.base import Base
+from app.models.document import Document
 
 
 class DocumentContent(Base):
@@ -11,11 +12,8 @@ class DocumentContent(Base):
         ForeignKey("documents.id", ondelete="CASCADE"),
         unique=True,
         nullable=False,
-        index=True
+        index=True,
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
-    document: Mapped["Document"] = relationship(
-        back_populates="content"
-    )
-
+    document: Mapped[Document] = relationship(back_populates="content")

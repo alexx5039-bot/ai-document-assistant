@@ -30,4 +30,3 @@ class UserRepository:
         await self.db.delete(user)
         await self.db.commit()
         return user
-    

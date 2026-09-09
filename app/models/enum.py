@@ -1,8 +1,10 @@
 from enum import Enum
 
+
 class SubscriptionPlan(str, Enum):
     FREE = "free"
     PRO = "pro"
+
 
 class SubscriptionStatus(str, Enum):
     ACTIVE = "active"

@@ -6,6 +6,7 @@ class SearchRequest(BaseModel):
     document_id: int | None = None
     limit: int = 5
 
+
 class SearchResult(BaseModel):
     document_id: int
     chunk_index: int
